@@ -44,6 +44,7 @@ class UsersController {
     return await Database.select("id", "name", "username", "email")
       .table("users")
       .limit(3)
+      .where("id", "!=", auth.user.id)
       .offset((page - 1) * 3);
   }
 }

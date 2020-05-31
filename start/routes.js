@@ -35,6 +35,10 @@ Route.resource("comments", "CommentsController")
 
 Route.post("/authenticate", "AuthController.authenticate").middleware(["auth"]);
 Route.get("/getUsers/:page", "UsersController.getUsers").middleware(["auth"]);
+Route.get(
+  "/getAllComments/:tweet_id",
+  "TweetsController.getAllComments"
+).middleware(["auth"]);
 
 Route.post("/like", "TweetsController.like");
 Route.get("/global", "TweetsController.globalTweets");

@@ -6,6 +6,7 @@
 
 const User = use("App/Models/User");
 const Tweet = use("App/Models/Tweet");
+const Comment = use("App/Models/Comment");
 
 const Database = use("Database");
 
@@ -71,12 +72,18 @@ class TweetsController {
    * @param {View} ctx.view
    */
   async globalTweets() {
+    const page = 1;
+
     const tweets = await Database.table("tweets")
       .innerJoin("users", "tweets.user_id", "users.id")
-      .innerJoin("comments", "tweets.id", "tweet_id")
+      .leftJoin("comments", "tweets.id", "comments.tweet_id")
       .orderBy("created_at", "desc")
       .limit(10)
-      .select(["tweets.*", Database.raw("to_json(users.*) as user")]);
+      .select([
+        "tweets.*",
+        Database.raw("to_json(users.*) as user"),
+        Database.raw("to_json(comments.*) as comments"),
+      ]);
 
     return tweets;
   }
@@ -116,6 +123,17 @@ class TweetsController {
    * @param {Response} ctx.response
    */
   async destroy({ params, request, response }) {}
+
+  async getAllComments({ request }) {
+    const { tweet_id } = request.params;
+
+    const tweet = await Tweet.findOrFail(tweet_id);
+
+    let user = await tweet.user().fetch();
+    let comments = await tweet.comments(User).fetch();
+
+    return { tweet, comments, user };
+  }
 }
 
 module.exports = TweetsController;

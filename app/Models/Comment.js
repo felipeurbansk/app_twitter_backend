@@ -1,10 +1,9 @@
-'use strict'
+"use strict";
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
-const Model = use('Model')
+const Model = use("Model");
 
 class Comment extends Model {
-
   /**
    * A relationship on tweet the comments
    *
@@ -12,10 +11,13 @@ class Comment extends Model {
    *
    * @return {Object}
    */
-  tweet () {
-    return this.belongsTo('App/Models/Tweet')
+  tweet() {
+    return this.belongsTo("App/Models/Tweet");
   }
 
+  user() {
+    return this.belongsTo("App/Models/User");
+  }
 }
 
-module.exports = Comment
+module.exports = Comment;
