@@ -5,6 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const User = use("App/Models/User");
+const Database = use("Database");
 
 class UsersController {
   /**
@@ -35,6 +36,15 @@ class UsersController {
     const login = await auth.attempt(email, password);
 
     return login;
+  }
+
+  async getUsers({ request, auth }) {
+    const { page } = request.params;
+
+    return await Database.select("id", "name", "username", "email")
+      .table("users")
+      .limit(3)
+      .offset((page - 1) * 3);
   }
 }
 

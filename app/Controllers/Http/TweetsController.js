@@ -73,6 +73,7 @@ class TweetsController {
   async globalTweets() {
     const tweets = await Database.table("tweets")
       .innerJoin("users", "tweets.user_id", "users.id")
+      .innerJoin("comments", "tweets.id", "tweet_id")
       .orderBy("created_at", "desc")
       .limit(10)
       .select(["tweets.*", Database.raw("to_json(users.*) as user")]);

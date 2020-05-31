@@ -27,12 +27,14 @@ Route.resource("tweets", "TweetsController")
   .apiOnly()
   .except(["update", "show"])
   .middleware(["auth"]);
+
 Route.resource("comments", "CommentsController")
   .apiOnly()
   .except(["update", "show"])
   .middleware(["auth"]);
 
 Route.post("/authenticate", "AuthController.authenticate").middleware(["auth"]);
+Route.get("/getUsers/:page", "UsersController.getUsers").middleware(["auth"]);
 
 Route.post("/like", "TweetsController.like");
 Route.get("/global", "TweetsController.globalTweets");
