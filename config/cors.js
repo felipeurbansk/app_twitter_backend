@@ -16,9 +16,7 @@ module.exports = {
   | Function - Receives the current origin and should return one of the above values.
   |
   */
-  origin: function (currentOrigin) {
-    return currentOrigin === "urbanski-app-twitter.netlify.app";
-  },
+  origin: "*",
 
   /*
   |--------------------------------------------------------------------------
@@ -49,7 +47,7 @@ module.exports = {
   | Function - Receives the current header and should return one of the above values.
   |
   */
-  headers: true,
+  headers: "*",
 
   /*
   |--------------------------------------------------------------------------
