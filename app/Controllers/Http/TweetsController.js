@@ -74,16 +74,16 @@ class TweetsController {
   async globalTweets() {
     const page = 1;
 
-    const tweets = await Database.table("tweets")
-      .innerJoin("users", "tweets.user_id", "users.id")
-      .leftJoin("comments", "tweets.id", "comments.tweet_id")
-      .orderBy("created_at", "desc")
-      .limit(10)
-      .select([
-        "tweets.*",
-        Database.raw("to_json(users.*) as user"),
-        Database.raw("to_json(comments.*) as comments"),
-      ]);
+    // const tweets = await Database.table("tweets")
+    //   .innerJoin("users", "tweets.user_id", "users.id")
+    //   .leftJoin("comments", "tweets.id", "comments.tweet_id")
+    //   .orderBy("created_at", "desc")
+    //   .limit(10)
+    //   .select([
+    //     "tweets.*",
+    //     Database.raw("to_json(users.*) as user"),
+    //     Database.raw("to_json(comments.*) as comments"),
+    //   ]);
 
     return tweets;
   }
@@ -130,9 +130,9 @@ class TweetsController {
     const tweet = await Tweet.findOrFail(tweet_id);
 
     let user = await tweet.user().fetch();
-    let comments = await tweet.comments(User).fetch();
+    // let comments = await tweet.comments(User).fetch();
 
-    return { tweet, comments, user };
+    return { tweet, user };
   }
 }
 

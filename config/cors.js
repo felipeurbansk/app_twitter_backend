@@ -16,13 +16,7 @@ module.exports = {
   | Function - Receives the current origin and should return one of the above values.
   |
   */
-  origin: function (currentOrigin) {
-    if(process.env.NODE_ENV​ === 'production' {
-      return currentOrigin === 'https://urbanski-app-twitter.netlify.app'
-    } else {
-      return true;
-    }
-  },
+  origin: "*",
 
   /*
   |--------------------------------------------------------------------------

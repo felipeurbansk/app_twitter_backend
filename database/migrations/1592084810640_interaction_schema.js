@@ -3,24 +3,24 @@
 /** @type {import('@adonisjs/lucid/src/Schema')} */
 const Schema = use("Schema");
 
-class CommentSchema extends Schema {
+class InteractionSchema extends Schema {
   up() {
-    this.create("comments", (table) => {
+    this.create("interactions", (table) => {
       table.increments();
-      table.string("comment");
-      table.integer("likes").notNullable().defaultTo(0);
+      table.boolean("tweet_like").defaultTo(false);
       table.integer("tweet_id").unsigned();
       table.integer("user_id").unsigned();
 
-      table.foreign("user_id").references("id").inTable("users");
       table.foreign("tweet_id").references("id").inTable("tweets");
+      table.foreign("user_id").references("id").inTable("users");
+
       table.timestamps();
     });
   }
 
   down() {
-    this.drop("comments");
+    this.drop("interactions");
   }
 }
 
-module.exports = CommentSchema;
+module.exports = InteractionSchema;
