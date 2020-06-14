@@ -41,7 +41,7 @@ Route.get(
 ).middleware(["auth"]);
 
 Route.put("/like/:tweet_id", "TweetsController.like").middleware(["auth"]);
-Route.put("/comments/:tweet_id", "TweetsController.comments").middleware([
+Route.put("/comments/:tweet_id", "TweetsController.create_comment").middleware([
   "auth",
 ]);
 Route.get("/global", "TweetsController.globalTweets");

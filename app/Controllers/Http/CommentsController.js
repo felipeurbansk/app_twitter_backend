@@ -42,17 +42,53 @@ class CommentsController {
    * @param {Response} ctx.response
    */
   async store({ request, response, auth }) {
-    const { tweet_id, comment } = request.body;
+    try {
+      const { tweet_id, comment } = request.body;
 
-    const tweet = await Tweet.findOrFail(tweet_id);
+      if (!tweet_id)
+        response.status(401).json({ error: "Params tweet_id required." });
 
-    const comments = new Comment();
-    comments.comment = comment;
-    comments.user_id = auth.user.id;
+      if (!comment)
+        response.status(401).json({ error: "Body comment_user required." });
 
-    await tweet.comments().save(comments);
+      const tweet = await Tweet.find(tweet_id);
 
-    return comments;
+      if (!tweet)
+        return response.status(404).json({ error: "Tweet not found." });
+
+      let interaction = await tweet
+        .interactions()
+        .where("user_id", auth.user.id)
+        .where("tweet_id", tweet_id)
+        .first();
+
+      if (!interaction) {
+        interaction = new Interaction();
+        interaction.user_id = auth.user.id;
+        await tweet.interactions().save(interaction);
+      }
+
+      let new_comment = new Comment();
+      new_comment.comment = comment;
+
+      await interaction.comments().save(new_comment);
+
+      const user = await interaction
+        .user()
+        .select("name", "username", "email", "id")
+        .fetch();
+
+      new_comment.name = user.name;
+      new_comment.username = user.username;
+      new_comment.email = user.email;
+      new_comment.user_id = user.id;
+      new_comment.interaction_id = interaction.id;
+
+      return new_comment;
+    } catch (err) {
+      console.log({ err });
+      return err;
+    }
   }
 
   /**

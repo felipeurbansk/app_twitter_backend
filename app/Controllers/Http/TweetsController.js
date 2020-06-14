@@ -152,37 +152,40 @@ class TweetsController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async comments({ request, auth, response }) {
+  async create_comment({ request, auth, response }) {
     try {
       const { tweet_id } = request.params;
       const { comment_user } = request.body;
 
-      if (!comment_user) return { error: "Params comments required." };
+      if (!tweet_id)
+        response.status(401).json({ error: "Params tweet_id required." });
+
+      if (!comment_user)
+        response.status(401).json({ error: "Body comment_user required." });
 
       const tweet = await Tweet.find(tweet_id);
-      if (!tweet) return { error: "Tweet not found." };
 
-      const interactions_user = await tweet
+      if (!tweet)
+        return response.status(404).json({ error: "Tweet not found." });
+
+      let interaction = await tweet
         .interactions()
         .where("user_id", auth.user.id)
-        .select("*")
+        .where("tweet_id", tweet_id)
         .first();
 
-      if (interactions_user) {
-        return interactions_user;
-      } else {
-        const interaction = new Interaction();
-
+      if (!interaction) {
+        interaction = new Interaction();
         interaction.user_id = auth.user.id;
         await tweet.interactions().save(interaction);
-
-        const comment = new Comment();
-        comment.comment = comment_user;
-
-        await interaction.comments().save(comment);
-
-        return interaction.comments().first();
       }
+
+      let comment = new Comment();
+      comment.comment = comment_user;
+
+      comment = await interaction.comments().save(comment);
+
+      return comment;
     } catch (err) {
       console.log({ err });
       return err;
@@ -200,13 +203,37 @@ class TweetsController {
   async destroy({ params, request, response }) {}
 
   async getAllComments({ request }) {
-    const { tweet_id } = request.params;
+    try {
+      const { tweet_id } = request.params;
+      if (!tweet_id) return { error: "Params tweet_id not found." };
 
-    const tweet = await Tweet.findOrFail(tweet_id);
+      let tweet = await Tweet.findOrFail(tweet_id);
+      let user = await tweet.user().fetch();
+      let likes = await tweet
+        .interactions()
+        .where("tweet_like", true)
+        .select("*")
+        .fetch();
 
-    let user = await tweet.user().fetch();
-    // let comments = await tweet.comments(User).fetch();
+      const { rows } = await Database.raw(
+        `
+        SELECT comments.*, users.id as user_id, users.username, users.name, users.email FROM tweets AS tweet
+        INNER JOIN interactions AS interaction
+        ON tweet.id = interaction.tweet_id
+        INNER JOIN comments
+        ON comments.interaction_id = interaction.id
+        INNER JOIN users as users
+        ON users.id = interaction.user_id
+        WHERE tweet.id = ${tweet_id}
+        `
+      );
 
+      return { user, tweet, likes, comments: rows };
+      /** Precisa retornar users, tweet, comments / tweet.comments */
+    } catch (err) {
+      console.log({ err });
+      return err;
+    }
     return { tweet, user };
   }
 }
