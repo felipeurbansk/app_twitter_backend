@@ -18,6 +18,10 @@ class Comment extends Model {
   user() {
     return this.belongsTo("App/Models/User");
   }
+
+  interaction() {
+    return this.belongsTo("App/Models/Interaction");
+  }
 }
 
 module.exports = Comment;

@@ -7,6 +7,7 @@
 const User = use("App/Models/User");
 const Tweet = use("App/Models/Tweet");
 const Interaction = use("App/Models/Interaction");
+const Comment = use("App/Models/Comment");
 
 const Database = use("Database");
 
@@ -98,29 +99,94 @@ class TweetsController {
    */
   async update({ params, request, response }) {}
 
-  async like({ request, auth }) {
-    const { tweet_id } = request.body;
-    const tweet = await Tweet.find(tweet_id);
+  /**
+   * Create/Update tweet_like.
+   * PUT or PATCH tweets/:id
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async like({ request, auth, response }) {
+    try {
+      const { tweet_id } = request.params;
+      const tweet = await Tweet.find(tweet_id);
 
-    if (!tweet) return { error: "Tweet not found." };
+      if (!tweet) return { error: "Tweet not found." };
 
-    const interactions_user = await tweet
-      .interactions()
-      .where("user_id", auth.user.id)
-      .fetch();
+      const interactions_user = await tweet
+        .interactions()
+        .where("user_id", auth.user.id)
+        .select("*")
+        .first();
 
-    if (interactions_user.size()) {
-      return { interactions_user };
-    } else {
-      const interaction = new Interaction();
+      if (interactions_user) {
+        await tweet
+          .interactions()
+          .where("user_id", auth.user.id)
+          .where("id", interactions_user.id)
+          .update({ tweet_like: !interactions_user.tweet_like })
+          .returning("id");
+        return { success: "Updated success." };
+      } else {
+        const interaction = new Interaction();
 
-      interaction.tweet_like = true;
-      interaction.user_id = auth.user.id;
+        interaction.tweet_like = true;
+        interaction.user_id = auth.user.id;
 
-      tweet.interactions().save(interaction);
+        tweet.interactions().save(interaction);
+        return { success: "Interect created success." };
+      }
+    } catch (err) {
+      return response
+        .status(401)
+        .json({ error: "Liked function does not work." });
     }
+  }
 
-    return tweet;
+  /**
+   * Create/Update comments.
+   * PUT or PATCH tweets/:id
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async comments({ request, auth, response }) {
+    try {
+      const { tweet_id } = request.params;
+      const { comment_user } = request.body;
+
+      if (!comment_user) return { error: "Params comments required." };
+
+      const tweet = await Tweet.find(tweet_id);
+      if (!tweet) return { error: "Tweet not found." };
+
+      const interactions_user = await tweet
+        .interactions()
+        .where("user_id", auth.user.id)
+        .select("*")
+        .first();
+
+      if (interactions_user) {
+        return interactions_user;
+      } else {
+        const interaction = new Interaction();
+
+        interaction.user_id = auth.user.id;
+        await tweet.interactions().save(interaction);
+
+        const comment = new Comment();
+        comment.comment = comment_user;
+
+        await interaction.comments().save(comment);
+
+        return interaction.comments().first();
+      }
+    } catch (err) {
+      console.log({ err });
+      return err;
+    }
   }
 
   /**
