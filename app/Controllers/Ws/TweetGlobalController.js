@@ -2,7 +2,7 @@
 
 class TweetGlobalController {
   constructor({ socket, request }) {
-    console.log("[Controller WSK] Nova inscrição no cannal ", socket.topic);
+    // console.log("[Controller WSK] Nova inscrição no cannal ", socket.topic);
     this.socket = socket;
     this.request = request;
   }
@@ -13,7 +13,7 @@ class TweetGlobalController {
 
   onClose() {
     console.log(
-      "[Controller WSK]  Fechado a conexão com o canal ",
+      // "[Controller WSK]  Fechado a conexão com o canal ",
       this.socket.topic
     );
   }

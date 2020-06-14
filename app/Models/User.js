@@ -46,8 +46,8 @@ class User extends Model {
     return this.hasMany("App/Models/Tweet");
   }
 
-  comments() {
-    return this.hasMany("App/Models/Comment");
+  interactions() {
+    return this.hasMany("App/Models/Interaction");
   }
 }
 

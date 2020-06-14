@@ -40,5 +40,5 @@ Route.get(
   "TweetsController.getAllComments"
 ).middleware(["auth"]);
 
-Route.post("/like", "TweetsController.like");
+Route.post("/like", "TweetsController.like").middleware(["auth"]);
 Route.get("/global", "TweetsController.globalTweets");

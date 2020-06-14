@@ -6,7 +6,7 @@
 
 const User = use("App/Models/User");
 const Tweet = use("App/Models/Tweet");
-const Comment = use("App/Models/Comment");
+const Interaction = use("App/Models/Interaction");
 
 const Database = use("Database");
 
@@ -74,16 +74,16 @@ class TweetsController {
   async globalTweets() {
     const page = 1;
 
-    // const tweets = await Database.table("tweets")
-    //   .innerJoin("users", "tweets.user_id", "users.id")
-    //   .leftJoin("comments", "tweets.id", "comments.tweet_id")
-    //   .orderBy("created_at", "desc")
-    //   .limit(10)
-    //   .select([
-    //     "tweets.*",
-    //     Database.raw("to_json(users.*) as user"),
-    //     Database.raw("to_json(comments.*) as comments"),
-    //   ]);
+    const tweets = await Database.table("tweets")
+      .innerJoin("users", "tweets.user_id", "users.id")
+      // .leftJoin("comments", "tweets.id", "comments.tweet_id")
+      .orderBy("created_at", "desc")
+      .limit(10)
+      .select([
+        "tweets.*",
+        Database.raw("to_json(users.*) as user"),
+        // Database.raw("to_json(comments.*) as comments"),
+      ]);
 
     return tweets;
   }
@@ -98,18 +98,27 @@ class TweetsController {
    */
   async update({ params, request, response }) {}
 
-  async like({ request }) {
-    const { tweet_id, action } = request.body;
-
+  async like({ request, auth }) {
+    const { tweet_id } = request.body;
     const tweet = await Tweet.find(tweet_id);
 
-    if (action) {
-      tweet.likes++;
-    } else {
-      if (tweet.likes > 0) tweet.likes--;
-    }
+    if (!tweet) return { error: "Tweet not found." };
 
-    tweet.save();
+    const interactions_user = await tweet
+      .interactions()
+      .where("user_id", auth.user.id)
+      .fetch();
+
+    if (interactions_user.size()) {
+      return { interactions_user };
+    } else {
+      const interaction = new Interaction();
+
+      interaction.tweet_like = true;
+      interaction.user_id = auth.user.id;
+
+      tweet.interactions().save(interaction);
+    }
 
     return tweet;
   }
