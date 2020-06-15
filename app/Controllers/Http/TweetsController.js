@@ -77,13 +77,13 @@ class TweetsController {
 
     const tweets = await Database.table("tweets")
       .innerJoin("users", "tweets.user_id", "users.id")
-      // .leftJoin("comments", "tweets.id", "comments.tweet_id")
       .orderBy("created_at", "desc")
       .limit(10)
       .select([
         "tweets.*",
-        Database.raw("to_json(users.*) as user"),
-        // Database.raw("to_json(comments.*) as comments"),
+        Database.raw(`
+          to_json(users.*) as user
+        `),
       ]);
 
     return tweets;
@@ -225,6 +225,7 @@ class TweetsController {
         INNER JOIN users as users
         ON users.id = interaction.user_id
         WHERE tweet.id = ${tweet_id}
+        ORDER BY comments.created_at DESC
         `
       );
 

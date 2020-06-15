@@ -6,6 +6,7 @@
 
 const Tweet = use("App/Models/Tweet");
 const Comment = use("App/Models/Comment");
+const Interaction = use("App/Models/Interaction");
 
 /**
  * Resourceful controller for interacting with comments
