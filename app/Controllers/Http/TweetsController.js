@@ -72,19 +72,41 @@ class TweetsController {
    * @param {Response} ctx.response
    * @param {View} ctx.view
    */
-  async globalTweets() {
+  async globalTweets({ request, auth }) {
     const page = 1;
 
-    const tweets = await Database.table("tweets")
-      .innerJoin("users", "tweets.user_id", "users.id")
-      .orderBy("created_at", "desc")
-      .limit(10)
-      .select([
-        "tweets.*",
-        Database.raw(`
-          to_json(users.*) as user
-        `),
-      ]);
+    // const tweets = await Database.table("tweets")
+    //   .innerJoin("users", "tweets.user_id", "users.id")
+    //   .orderBy("created_at", "desc")
+    //   .limit(10)
+    //   .select([
+    //     "tweets.*",
+    //     Database.raw(`
+    //       to_json(users.*) as user
+    //     `),
+    //   ]);
+
+    // const { tweets } = await Database.raw(`
+    //   SELECT tw.* AS "tweet" FROM tweets as tw
+    //   INNER JOIN interactions as int
+    //   ON tw.id = int.tweet_id
+    //   LEFT JOIN users as us
+    //   ON int.user_id = ${auth.user.id}
+    //   LIMIT 10
+    //   OFFSET ${(page - 1) * 10}
+    // `);
+
+    const { tweets } = await Database.raw(`
+      select row_to_json(tweets) as tweet
+          from(
+            select tweet.id, tweet.post,
+              (select json_agg(interactions)
+                from (
+                  select * from albums where artist_id = a.id
+                ) alb
+          ) as interaction
+        from interactions as int ) tweets;
+    `);
 
     return tweets;
   }
@@ -125,9 +147,12 @@ class TweetsController {
           .interactions()
           .where("user_id", auth.user.id)
           .where("id", interactions_user.id)
-          .update({ tweet_like: !interactions_user.tweet_like })
-          .returning("id");
-        return { success: "Updated success." };
+          .update({ tweet_like: !interactions_user.tweet_like });
+        return {
+          success: "Updated success.",
+          id: tweet_id,
+          like: !interactions_user.tweet_like,
+        };
       } else {
         const interaction = new Interaction();
 
