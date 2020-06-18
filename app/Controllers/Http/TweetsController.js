@@ -77,15 +77,12 @@ class TweetsController {
 
     const tweets = await Database.table("tweets")
       .innerJoin("users", "tweets.user_id", "users.id")
-      .innerJoin("interactions", "interactions.user_id", auth.user.id)
-      .options({ nestTables: true })
       .orderBy("created_at", "desc")
       .limit(10)
       .select([
         "tweets.*",
         Database.raw(`
-          to_json(users.*) as user,
-          to_json(interactions.*) as "interaction"
+          to_json(users.*) as user
         `),
       ]);
 
