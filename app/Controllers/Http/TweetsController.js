@@ -75,26 +75,19 @@ class TweetsController {
   async globalTweets({ request, auth }) {
     const page = 1;
 
-    // const tweets = await Database.table("tweets")
-    //   .innerJoin("users", "tweets.user_id", "users.id")
-    //   .orderBy("created_at", "desc")
-    //   .limit(10)
-    //   .select([
-    //     "tweets.*",
-    //     Database.raw(`
-    //       to_json(users.*) as user
-    //     `),
-    //   ]);
-
-    const { tweets } = await Database.raw(`
-      SELECT tw.* AS "tweet" FROM tweets as tw
-      INNER JOIN interactions as int
-      ON tw.id = int.tweet_id
-      LEFT JOIN users as us
-      ON int.user_id = ${auth.user.id}
-      LIMIT 10
-      OFFSET ${(page - 1) * 10}
-    `);
+    const tweets = await Database.table("tweets")
+      .innerJoin("users", "tweets.user_id", "users.id")
+      .innerJoin("interactions", "interactions.user_id", auth.user.id)
+      .options({ nestTables: true })
+      .orderBy("created_at", "desc")
+      .limit(10)
+      .select([
+        "tweets.*",
+        Database.raw(`
+          to_json(users.*) as user,
+          to_json(interactions.*) as "interaction"
+        `),
+      ]);
 
     return tweets;
   }
