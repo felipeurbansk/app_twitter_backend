@@ -76,9 +76,13 @@ class TweetsController {
     const page = 1;
 
     const tweets = await Tweet.query()
+      .with("user")
       .with("interactions", (db) => {
         db.with("comments");
       })
+      .orderBy("tweets.created_at", "DESC")
+      .limit(10)
+      .offset((page - 1) * 10)
       .fetch();
 
     return tweets;
