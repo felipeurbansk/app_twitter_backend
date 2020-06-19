@@ -75,16 +75,11 @@ class TweetsController {
   async globalTweets({ request, auth }) {
     const page = 1;
 
-    const tweets = await Database.table("tweets")
-      .innerJoin("users", "tweets.user_id", "users.id")
-      .orderBy("created_at", "desc")
-      .limit(10)
-      .select([
-        "tweets.*",
-        Database.raw(`
-          to_json(users.*) as user
-        `),
-      ]);
+    const tweets = await Tweet.query()
+      .with("interactions", (db) => {
+        db.with("comments");
+      })
+      .fetch();
 
     return tweets;
   }
